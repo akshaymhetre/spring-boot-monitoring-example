@@ -1,0 +1,9 @@
+# Server config
+server:
+  port: "${SERVER_PORT:8090}"
+
+# Actuator and observation Config
+management:
+  endpoints:
+    web.exposure.include: "${METRICS_INCLUDE:*}" # health,info,prometheus,metrics
+    health.show-details: "${METRICS_HEALTH:always}"

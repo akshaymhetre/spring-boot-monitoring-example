@@ -1,0 +1,53 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monitoring-app
+  labels:
+    app: monitoring-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monitoring-app
+  template:
+    metadata:
+      labels:
+        app: monitoring-app
+    spec:
+      containers:
+        - name: monitoring-app
+          image: app:latest          # Updated to use the image 'app:latest'
+          imagePullPolicy: Never     # Use locally built image
+          ports:
+            - containerPort: 8090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitoring-app-service
+  labels:
+    app: monitoring-app
+spec:
+  selector:
+    app: monitoring-app
+  ports:
+    - protocol: TCP
+      name: http-traffic
+      port: 8090                    # Name to refer port easily in prometheus
+      targetPort: 8090
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor                # CRD provided by prometheus operator
+metadata:
+  name: monitoring-app-service-monitor
+  labels:
+    app: monitoring-app
+spec:
+  selector:
+    matchLabels:
+      app: monitoring-app
+  endpoints:
+    - port: http-traffic
+      path: "/actuator/prometheus"  # Prometheus endpoint exposed by Spring Boot
+      interval: 30s                 # Frequency of scraping
